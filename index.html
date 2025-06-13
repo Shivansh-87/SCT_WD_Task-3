@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic Tac Toe</title>
+<!-- Google Fonts & Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ff00cc 0%, #333399 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  header {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px;
+  }
+
+  h1 {
+    font-weight: 700;
+    font-size: 1.8rem;
+    user-select: none;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(45deg, #ff77ff, #77aaff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Control group */
+  .controls {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .toggle-btn {
+    background: rgba(255 255 255 / 0.15);
+    border: none;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    color: white;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .toggle-btn:hover,
+  .toggle-btn:focus {
+    background: rgba(255 255 255 / 0.3);
+    outline: none;
+  }
+
+  .toggle-btn.active {
+    background: white;
+    color: #ff00cc;
+    box-shadow: 0 0 12px #ff00cc80;
+  }
+
+  .toggle-btn .material-icons {
+    font-size: 20px;
+  }
+
+  button#reset-btn {
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 50%;
+    color: white;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  button#reset-btn:hover,
+  button#reset-btn:focus {
+    background: white;
+    color: #ff00cc;
+    box-shadow: 0 0 8px #ff00ccbb;
+    outline: none;
+  }
+
+  button#reset-btn .material-icons {
+    font-size: 28px;
+  }
+
+  /* Game board container */
+  #game {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 1 / 1;
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgb(255 0 204 / 0.4);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  /* Each cell */
+  .cell {
+    background: rgba(255 255 255 / 0.15);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    font-size: 4rem;
+    font-weight: 900;
+    color: white;
+    transition: background-color 0.25s ease, transform 0.2s ease;
+    position: relative;
+    line-height: 1;
+  }
+  .cell:hover:not(.disabled) {
+    background: rgba(255 255 255 / 0.3);
+    transform: scale(1.05);
+  }
+  .cell.disabled {
+    cursor: default;
+    color: #ccc;
+    background: rgba(255 255 255 / 0.05);
+  }
+
+  /* Highlight winning cells */
+  .cell.win {
+    color: #00ffc8;
+    text-shadow: 0 0 8px #00ffc8bb;
+    background: rgba(0, 255, 200, 0.15);
+  }
+
+  /* Status area */
+  #status {
+    margin-top: 32px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    min-height: 28px;
+    user-select: none;
+    letter-spacing: 1.5px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    body {
+      padding: 12px;
+    }
+    #game {
+      gap: 12px;
+      border-radius: 20px;
+      padding: 12px;
+    }
+    .cell {
+      font-size: 3.3rem;
+      border-radius: 12px;
+    }
+    header {
+      max-width: 100%;
+      margin-bottom: 20px;
+      padding: 0 4px;
+    }
+  }
+  @media (min-width: 1025px) {
+    body {
+      padding: 24px;
+    }
+    #game {
+      max-width: 480px;
+      gap: 20px;
+      padding: 20px;
+    }
+  }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>TIC TAC TOE</h1>
+  <div class="controls" role="group" aria-label="Game mode controls">
+    <button class="toggle-btn active" id="mode-human" aria-pressed="true" aria-label="Play against human player">
+      <span class="material-icons" aria-hidden="true">people</span> Human
+    </button>
+    <button class="toggle-btn" id="mode-computer" aria-pressed="false" aria-label="Play against computer">
+      <span class="material-icons" aria-hidden="true">smart_toy</span> Computer
+    </button>
+    <button id="reset-btn" aria-label="Reset game">
+      <span class="material-icons" aria-hidden="true">refresh</span>
+    </button>
+  </div>
+</header>
+
+<main role="main" aria-live="polite">
+  <section id="game" role="grid" aria-label="Tic Tac Toe board" aria-rowcount="3" aria-colcount="3">
+    <div class="cell" role="gridcell" tabindex="0" data-index="0" aria-label="Cell 1"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="1" aria-label="Cell 2"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="2" aria-label="Cell 3"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="3" aria-label="Cell 4"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="4" aria-label="Cell 5"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="5" aria-label="Cell 6"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="6" aria-label="Cell 7"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="7" aria-label="Cell 8"></div>
+    <div class="cell" role="gridcell" tabindex="0" data-index="8" aria-label="Cell 9"></div>
+  </section>
+  <div id="status" aria-live="polite" aria-atomic="true"></div>
+</main>
+
+<script>
+  (() => {
+    'use strict';
+
+    const board = Array(9).fill('');
+    const cells = document.querySelectorAll('.cell');
+    const statusEl = document.getElementById('status');
+    const btnReset = document.getElementById('reset-btn');
+    const btnHuman = document.getElementById('mode-human');
+    const btnComputer = document.getElementById('mode-computer');
+
+    let currentPlayer = 'X'; // X always starts
+    let isGameOver = false;
+    let gameMode = 'human'; // or 'computer'
+
+    // Winning combinations: indexes on board
+    const winCombos = [
+      [0,1,2],[3,4,5],[6,7,8], // rows
+      [0,3,6],[1,4,7],[2,5,8], // columns
+      [0,4,8],[2,4,6]          // diagonals
+    ];
+
+    // Initialize/reset game state
+    function init() {
+      board.fill('');
+      currentPlayer = 'X';
+      isGameOver = false;
+      statusEl.textContent = "Player X's turn";
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('disabled', 'win');
+        cell.setAttribute('aria-disabled', 'false');
+      });
+      btnReset.disabled = false;
+      if (gameMode === 'computer' && currentPlayer === 'O') {
+        // Computer starts first? (we fix: X always starts human anyway)
+        computerMove();
+      }
+    }
+
+    // Update the board after a move
+    function updateBoard(index) {
+      if (board[index] === '' && !isGameOver) {
+        board[index] = currentPlayer;
+        cells[index].textContent = currentPlayer;
+        cells[index].classList.add('disabled');
+        cells[index].setAttribute('aria-disabled', 'true');
+
+        if (checkWin(currentPlayer)) {
+          isGameOver = true;
+          statusEl.textContent = `Player ${currentPlayer} wins!`;
+          highlightWinningCells(currentPlayer);
+          return;
+        }
+        if (checkDraw()) {
+          isGameOver = true;
+          statusEl.textContent = "It's a draw!";
+          return;
+        }
+        togglePlayer();
+        if (gameMode === 'computer' && currentPlayer === 'O' && !isGameOver) {
+          statusEl.textContent = "Computer is thinking...";
+          disableAllCells(true);
+          setTimeout(() => {
+            computerMove();
+            disableAllCells(false);
+          }, 700);
+        } else {
+          statusEl.textContent = `Player ${currentPlayer}'s turn`;
+        }
+      }
+    }
+
+    // Toggle player X/O
+    function togglePlayer() {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    }
+
+    // Check if current player won
+    function checkWin(player) {
+      return winCombos.some(combo =>
+        combo.every(index => board[index] === player)
+      );
+    }
+
+    // Highlight winning cells with .win class
+    function highlightWinningCells(player) {
+      const winningCombo = winCombos.find(combo =>
+        combo.every(index => board[index] === player)
+      );
+      if (winningCombo) {
+        winningCombo.forEach(i => cells[i].classList.add('win'));
+      }
+      disableAllCells(true);
+    }
+
+    // Check for draw
+    function checkDraw() {
+      return board.every(cell => cell !== '');
+    }
+
+    // Disable/enable all cells
+    function disableAllCells(disable) {
+      cells.forEach(cell => {
+        if (!cell.classList.contains('win')) {
+          if (disable) {
+            cell.classList.add('disabled');
+            cell.setAttribute('aria-disabled', 'true');
+            cell.tabIndex = -1;
+          } else {
+            if (board[ cell.dataset.index ] === '') {
+              cell.classList.remove('disabled');
+              cell.setAttribute('aria-disabled', 'false');
+              cell.tabIndex = 0;
+            }
+          }
+        }
+      });
+    }
+
+    // Simple computer AI - chooses random empty cell
+    function computerMove() {
+      const emptyIndices = board.reduce((acc, val, i) =>
+        val === '' ? acc.concat(i) : acc, []);
+      if (emptyIndices.length === 0) return;
+      // Check for winning move
+      let move = findWinningMove('O');
+      if (move === -1) {
+        // Block opponent if needed
+        move = findWinningMove('X');
+      }
+      if (move === -1) {
+        // Otherwise pick random
+        move = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      }
+      updateBoard(move);
+    }
+
+    // Find winning move index for player or -1 if none
+    function findWinningMove(player) {
+      for (const combo of winCombos) {
+        const marks = combo.map(i => board[i]);
+        if (marks.filter(m => m === player).length === 2 &&
+            marks.includes('')) {
+          return combo[marks.indexOf('')];
+        }
+      }
+      return -1;
+    }
+
+    // Handle click on a cell
+    function handleCellClick(e) {
+      if (!e.target.classList.contains('cell')) return;
+      const idx = Number(e.target.dataset.index);
+      if (board[idx] === '' && !isGameOver) {
+        updateBoard(idx);
+      }
+    }
+
+    // Switch game mode
+    function setGameMode(mode) {
+      gameMode = mode;
+      btnHuman.classList.toggle('active', mode === 'human');
+      btnHuman.setAttribute('aria-pressed', mode === 'human');
+      btnComputer.classList.toggle('active', mode === 'computer');
+      btnComputer.setAttribute('aria-pressed', mode === 'computer');
+      init();
+    }
+
+    // Keyboard accessibility: allow Enter and Space keys on cells
+    function handleKeyDown(e) {
+      if (!e.target.classList.contains('cell')) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const idx = Number(e.target.dataset.index);
+        if (board[idx] === '' && !isGameOver) {
+          updateBoard(idx);
+          e.target.focus();
+        }
+      }
+    }
+
+    // Event listeners
+    document.getElementById('game').addEventListener('click', handleCellClick);
+    document.getElementById('game').addEventListener('keydown', handleKeyDown);
+    btnReset.addEventListener('click', () => init());
+    btnHuman.addEventListener('click', () => setGameMode('human'));
+    btnComputer.addEventListener('click', () => setGameMode('computer'));
+
+    // Init on load
+    init();
+
+  })();
+</script>
+</body>
+</html>
+
+```
